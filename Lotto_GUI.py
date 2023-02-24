@@ -69,7 +69,7 @@ class Dataset:
 
 Hauptzahlen = Dataset("Hauptzahlen", 8888, 50, 5, 2.6, 1, True)
 Zusatzzahlen = Dataset("Zusatzzahlen", 8888, 12, 2, 9.4, 1, True)
-Traumhaus = Dataset("Los Nummer", 888, 9, 7, 10.3, 0, False)
+Traumhaus = Dataset("Los Nummer", 8888, 9, 7, 11, 0, False)
 
 
 # Dataset Liste erstellen:
@@ -105,12 +105,6 @@ def min_prop(dataset):
             dataset.numbers.append(counting)
             #print("Adding", counting) #test           
     counting += 1
-
-print(Traumhaus.go())
-print(Traumhaus.go())
-print(Traumhaus.go())
-print(Traumhaus.go())
-print(Traumhaus.go())
 
 #--------------------------FUNCTIONS------------------------------
 
@@ -159,17 +153,25 @@ def lotto_loading():
     
 def hausfct():
     global th_output
+    th_done = False
     th_output = Traumhaus.go()
     print(th_output)
+
     if type(th_output) == list:
-        label_th_output.configure(text=(", ".join(map(str, th_output))))
-        button_traumhaus.configure(text="Highest propability:")
+        label_th_output.configure(text=(", ".join(map(str, Traumhaus.go()))))
+        hz_done = True
+
     elif type(th_output) == str:
         th_output = str(th_output)
-        button_lotto.configure(text="Error:")
+        label_th_output.configure(text=th_output)
+        button_traumhaus.configure(text="Error:")
+
     else:
-        button_lotto.configure(text="Error:")
-        button_lotto.configure(text="Something went wrong")
+        button_traumhaus.configure(text="Error:")
+        button_traumhaus.configure(text="Something went wrong") 
+
+    if th_done == True and th_done ==True:
+        button_traumhaus.configure(text="The Universe told me:")
 
 
     
