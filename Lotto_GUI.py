@@ -4,7 +4,7 @@ import Lotto as lotto
 import customtkinter as ctk # <- import the CustomTkinter module
 
 bg_color_l = "#F0F9F8"
-bg_color_d = "#3E4453"
+bg_color_d = "#2b2a32"
 #"#6CA8FF"
 #--------------------------base-------------------------------------
 root_tk = tkinter.Tk()  # create the Tk window like you normally do
@@ -20,7 +20,7 @@ primary_color_dark = "#316283"
 secondary_color_light = "#A1F1DF"
 secondary_color_dark = "#31837A"
 acc_color_light = "#BBCCDD"
-acc_color_dark = "#3A5775"
+acc_color_dark = "#43414e"
 acc2_color_light = "#003739"
 acc2_color_dark = "white"
 
@@ -29,11 +29,13 @@ def settings():
     pass
 
 def eurofct():
+    zz_done = False
+    hz_done = False
+
     zz_output = lotto.Zusatzzahlen.go()
     if type(zz_output) == list:                                        # TRY brauchen wir um die Rückmeldung "Too Many Numbers" als string auszugeben
-
         label_zz_output.configure(text=(", ".join(map(str, lotto.Zusatzzahlen.go()))))
-        button_lotto.configure(text="The Universe told me:")
+        zz_done = True
     elif type(zz_output) == str:
         zz_output = str(zz_output)
         button_lotto.configure(text="Error:")
@@ -45,16 +47,20 @@ def eurofct():
     hz_output = lotto.Hauptzahlen.go()
     if type(hz_output) == list:
         label_hz_output.configure(text=(", ".join(map(str, lotto.Hauptzahlen.go()))))
+        hz_done = True
     elif type(hz_output) == str:
         hz_output = str(hz_output)
         button_lotto.configure(text="Error:")
     else:
         button_lotto.configure(text="Error:")
-        button_lotto.configure(text="Something went wrong")    
+        button_lotto.configure(text="Something went wrong") 
+
+    if hz_done == True and zz_done ==True:
+        button_lotto.configure(text="The Universe told me:")
 
 def lotto_loading():
     button_lotto.configure(text="Calculating...")
-    threading.Thread(target=eurofct).start()
+    threading.Thread(target=eurofct).start()   
     
 def hausfct():
     th_output = lotto.Traumhaus.go()
@@ -120,7 +126,7 @@ def create_frame(x_pos, y_pos, **attrs):
 
 
     frame = ctk.CTkFrame(master=root_tk,
-                               fg_color=(color_pl, color_pd),
+                               fg_color=(color_pl, "#43414e"),
                                width=width,
                                height=height,
                                corner_radius=corner_radius,
@@ -136,11 +142,15 @@ def create_label(text, x_pos, y_pos, **attrs):
     anchor = attrs.get("anchor", tkinter.CENTER)
     color_txt_l = attrs.get("color_txt_l", "black")
     color_txt_d = attrs.get("color_txt_d", "white")
+    color_l = attrs.get("color_l", bg_color_l)
+    color_d = attrs.get("color_d", "#43414e")
+    
     label = ctk.CTkLabel(master=master,                                     # master = übergeordnetes Objekt
                       text=text,
                       text_color=(color_txt_l, color_txt_d),
                       width=90,
-                      height=25,
+                      height=26,
+                      fg_color=(color_l,color_d),
                       font=("Helvetica", 12))
     label.place(relx=x_pos, rely=y_pos, anchor=anchor)
     return label
@@ -148,7 +158,11 @@ def create_label(text, x_pos, y_pos, **attrs):
 #_________________________INPUTS___________________________
 def create_entry(x_pos, y_pos, **attrs):
     master = attrs.get("master", root_tk)
+    text = attrs.get("text", "type here")
+
+
     entry = ctk.CTkEntry(master=master,
+                                placeholder_text=text,
                                 width=100,
                                 height=25,
                                 corner_radius=5,
@@ -159,7 +173,7 @@ def create_entry(x_pos, y_pos, **attrs):
 #______________________Building GUI_______________________________
 
 header              = create_frame(x_pos=0.5, y_pos=0.0, color_pl=primary_color_light, height=60)  ##HEADER
-label_header        = create_label("GC Number Generator", 0.5, 0.75, master=header, color_txt_l=acc2_color_light, color_txt_d=acc2_color_dark)
+#label_header        = create_label("GC Number Generator", 0.5, 0.75, master=header, color_txt_l=acc2_color_light, color_txt_d=acc2_color_dark)
 
 frame_lotto        = create_frame(x_pos=0.5, y_pos=0.355, color_pl=bg_color_l, color_pd=bg_color_d, height=70, width=250, corner_radius=10, border_width=1)  #Output Rahmen Lotto
 frame_traumhaus    = create_frame(x_pos=0.5, y_pos=0.665, color_pl=bg_color_l, color_pd=bg_color_d, height=70, width=250, corner_radius=10, border_width=1)  #Output Rahmen Haus
@@ -190,48 +204,95 @@ toggle_mode_B   = create_button(toggle_mode,
                               corner=0)
 #=============================Settings ============================
 
+def toggle_settings():
+    if it_labels.winfo_viewable():
+        settings_button.configure(text="Settings")
+        setting_frame.place_forget()
+        #iter_entry.place_forget()
+        #it_labels.place_forget()
+        #it_set_button.place_forget()
+
+
+    else:    
+        it_labels.place(relx=0.1, rely=0.2)
+        iter_entry.place(relx=0.37, rely=0.2)
+        it_set_button.place(relx=0.46, rely=0.2)
+        settings_button.configure(text="Hide Settings")
+        setting_frame.place(relx=0.0, rely=0.78)
+        zz_samples_labels.place(relx=0.13, rely=0.5)
+        zz_samples_entry.place(relx=0.37, rely=0.5)
+        zz_samples_set_button.place(relx=0.46, rely=0.5)
+        hz_samples_labels.place(relx=0.13, rely=0.8)
+        hz_samples_entry.place(relx=0.37, rely=0.8)
+        hz_samples_set_button.place(relx=0.46, rely=0.8)
+        th_samples_labels.place(relx=0.62, rely=0.2)
+        th_samples_entry.place(relx=0.86, rely=0.2)
+        th_samples_set_button.place(relx=0.95, rely=0.2)
+        
+
 
 def it_set():
     iterations = iter_entry.get()
     lotto.iter_allowed = int(iterations)
-    print(iterations)
     return int(iterations)
 
+def haus_samples():
+    samples = th_samples_entry.get()
+    lotto.Traumhaus.size = int(samples)
+    return int(samples)
 
+def hz_samples():
+    samples = hz_samples_entry.get()
+    lotto.Hauptzahlen.size = int(samples)
+    return int(samples)
 
+def zz_samples():
+    samples = zz_samples_entry.get()
+    lotto.Zusatzzahlen.size = int(samples)
+    return int(samples)
 
-
-def toggle_settings():
-    if setting_label.winfo_viewable():
-        setting_label.place_forget()
-        settings_button.configure(text="Settings")
-        iter_entry.place_forget()
-        it_set_button.place_forget()
-        setting_frame.place_forget()
-
-    else:    
-        setting_label.place(relx=0.1, rely=0.2)
-        settings_button.configure(text="Hide Settings")
-        iter_entry.place(relx=0.09, rely=0.5)
-        it_set_button.place(relx=0.35, rely=0.52)
-        setting_frame.place(relx=0.0, rely=0.78)
 
 setting_frame = create_frame(x_pos=0.5, y_pos=0.895, color_pl=primary_color_light, height=110)
 setting_frame.place_forget()
 
-setting_label = create_label("Interations", 0.12, 0.5, master=setting_frame)
-setting_label.place_forget()
-iter_entry = create_entry(0.1,0.5, master=setting_frame)
-iter_entry.place_forget()
+#---------------------settings iterations --------------------
 
-it_set_button = create_button(it_set, "Set", 0.35, 0.52, width=20, height=20, corner=2, txt_size=10, master=setting_frame, color_pl="white")
-it_set_button.place_forget()
-
-
-
+it_labels = create_label("Interations:", 0.1, 0.2, master=setting_frame, color_l="#A1DBF1")
+#it_labels.place_forget()
+iter_entry = create_entry(0.37,0.2, master=setting_frame, text=lotto.iter_allowed)
+#iter_entry.place_forget()
+it_set_button = create_button(it_set, "Set", 0.46, 0.2, width=22, height=25, corner=5, txt_size=10, master=setting_frame, color_pl="white")
+#it_set_button.place_forget()
 
 
+#---------------------settings samples --------------------
 
+th_samples_labels = create_label("TH Samplesize:", 0.62, 0.2, master=setting_frame, color_l="#A1DBF1")
+#th_samples_labels.place_forget()
+th_samples_entry = create_entry(0.86,0.2, master=setting_frame, text=lotto.Traumhaus.size)
+#th_samples_entry.place_forget()
+th_samples_set_button = create_button(haus_samples, "Set", 0.95, 0.2, width=22, height=25, corner=5, txt_size=10, master=setting_frame, color_pl="white")
+#th_samples_set_button.place_forget()
+
+#---------------------settings samples --------------------
+
+
+hz_samples_labels = create_label("HZ Samplesize:", 0.13, 0.8, master=setting_frame, color_l="#A1DBF1")
+#th_samples_labels.place_forget()
+hz_samples_entry = create_entry(0.37,0.8, master=setting_frame, text=lotto.Hauptzahlen.size)
+#th_samples_entry.place_forget()
+hz_samples_set_button = create_button(hz_samples, "Set", 0.46, 0.8, width=22, height=25, corner=5, txt_size=10, master=setting_frame, color_pl="white")
+#th_samples_set_button.place_forget()
+
+#---------------------settings samples --------------------
+
+
+zz_samples_labels = create_label("ZZ Samplesize:", 0.13, 0.5, master=setting_frame, color_l="#A1DBF1")
+#th_samples_labels.place_forget()
+zz_samples_entry = create_entry(0.37,0.5, master=setting_frame, text=lotto.Zusatzzahlen.size)
+#th_samples_entry.place_forget()
+zz_samples_set_button = create_button(zz_samples, "Set", 0.46, 0.5, width=22, height=25, corner=5, txt_size=10, master=setting_frame, color_pl="white")
+#th_samples_set_button.place_forget()
 
 #=============================BUTTONS =============================
 
