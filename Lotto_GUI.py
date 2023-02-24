@@ -1,6 +1,8 @@
 import tkinter
 import threading
 import Lotto as lotto
+from decimal import Decimal
+import random
 import customtkinter as ctk # <- import the CustomTkinter module
 
 bg_color_l = "#F0F9F8"
@@ -8,7 +10,7 @@ bg_color_d = "#2b2a32"
 #"#6CA8FF"
 #--------------------------base-------------------------------------
 root_tk = tkinter.Tk()  # create the Tk window like you normally do
-root_tk.geometry("400x500")
+root_tk.geometry("400x600")
 root_tk.title("Freds awesome Lucky Number Generator")
 root_tk.config(bg=bg_color_l)
 
@@ -24,33 +26,126 @@ acc_color_dark = "#43414e"
 acc2_color_light = "#003739"
 acc2_color_dark = "white"
 
+#================================MAIN================================================================
+
+iter_allowed = 6000 # Maximale Loop Iterations
+
+class Dataset:
+  def __init__(self, name, size, max_num, samples, min_perc, lowest, singles):
+    self.name = name
+    self.size = size
+    self.max_num = max_num
+    self.samples = samples
+    self.min_perc = min_perc
+    self.numbers = []
+    self.counter = 0
+    self.lowest = lowest
+    self.range = range(self.lowest, (max_num + 1))
+    self.singles = singles
+    self.infinity_counter = 0
+
+  def reset(self):
+    self.numbers = []
+    self.counter = 0 
+    self.infinity_counter = 0
+
+  def go(self):
+    self.numbers.clear()
+    while len(self.numbers) < self.samples and self.infinity_counter < iter_allowed:
+      min_prop(self)
+      self.infinity_counter += 1
+    if len(self.numbers) == self.samples:
+      return self.numbers
+      print(self.numbers)
+    elif len(self.numbers) > self.samples:
+      #return self.numbers
+      print(self.numbers)
+      return "Too many numbers"
+    else:
+      print(self.numbers)
+      return "Not enough numbers."
+
+# Klassenobjekte definieren:
+
+Hauptzahlen = Dataset("Hauptzahlen", 8888, 50, 5, 2.6, 1, True)
+Zusatzzahlen = Dataset("Zusatzzahlen", 8888, 12, 2, 9.4, 1, True)
+Traumhaus = Dataset("Los Nummer", 888, 9, 7, 10.3, 0, False)
+
+
+# Dataset Liste erstellen:
+def create_dataset(dataset):
+  lst = []
+  while len(lst) < dataset.size:
+    nums = lst.append(random.randint(dataset.lowest, len(dataset.range)))
+  return lst
+
+# Prozentuale Anteile ausrechnen und als Dictionary ausgeben:
+def get_perc(dataset):
+  perc = {}
+  ds = create_dataset(dataset)
+  for n in list(dataset.range):
+    #print(n, ds.count(n))
+    perc[n] = ((ds.count(n) / dataset.size)*100)
+  return perc
+
+# Dictionary durchlaufen und Zahlen mit Prozentzahl über Grenzwert zu Numbers-Liste hinzufügen:
+def min_prop(dataset):
+  counting = (dataset.counter + dataset.lowest)
+  pers_dict = get_perc(dataset)#DICTIONARY
+  values = list(pers_dict.values())#Liste aller Prozenten
+  for p in values: # p = prozentzahl
+    #print(counting) #test
+    #print(p) #test
+    if p > dataset.min_perc:
+        if dataset.singles == True:
+            if counting not in dataset.numbers: 
+                dataset.numbers.append(counting)
+                #print("Adding", counting) #test
+        else:
+            dataset.numbers.append(counting)
+            #print("Adding", counting) #test           
+    counting += 1
+
+print(Traumhaus.go())
+print(Traumhaus.go())
+print(Traumhaus.go())
+print(Traumhaus.go())
+print(Traumhaus.go())
+
 #--------------------------FUNCTIONS------------------------------
+
 def settings():
     pass
 
 def eurofct():
+    zz_output = Zusatzzahlen.go()
     zz_done = False
     hz_done = False
 
-    zz_output = lotto.Zusatzzahlen.go()
     if type(zz_output) == list:                                        # TRY brauchen wir um die Rückmeldung "Too Many Numbers" als string auszugeben
-        label_zz_output.configure(text=(", ".join(map(str, lotto.Zusatzzahlen.go()))))
+        label_zz_output.configure(text=(", ".join(map(str, Zusatzzahlen.go()))))
         zz_done = True
+
     elif type(zz_output) == str:
         zz_output = str(zz_output)
+        label_zz_output.configure(text=zz_output)
         button_lotto.configure(text="Error:")
+
     else:
         button_lotto.configure(text="Error:")
         button_lotto.configure(text="Something went wrong")
 
+    hz_output = Hauptzahlen.go()
 
-    hz_output = lotto.Hauptzahlen.go()
     if type(hz_output) == list:
-        label_hz_output.configure(text=(", ".join(map(str, lotto.Hauptzahlen.go()))))
+        label_hz_output.configure(text=(", ".join(map(str, Hauptzahlen.go()))))
         hz_done = True
+
     elif type(hz_output) == str:
         hz_output = str(hz_output)
+        label_hz_output.configure(text=hz_output)
         button_lotto.configure(text="Error:")
+
     else:
         button_lotto.configure(text="Error:")
         button_lotto.configure(text="Something went wrong") 
@@ -63,9 +158,21 @@ def lotto_loading():
     threading.Thread(target=eurofct).start()   
     
 def hausfct():
-    th_output = lotto.Traumhaus.go()
-    label_th_output.configure(text=(", ".join(map(str, lotto.Traumhaus.go()))))
-    button_traumhaus.configure(text="Highest propability:")
+    global th_output
+    th_output = Traumhaus.go()
+    print(th_output)
+    if type(th_output) == list:
+        label_th_output.configure(text=(", ".join(map(str, th_output))))
+        button_traumhaus.configure(text="Highest propability:")
+    elif type(th_output) == str:
+        th_output = str(th_output)
+        button_lotto.configure(text="Error:")
+    else:
+        button_lotto.configure(text="Error:")
+        button_lotto.configure(text="Something went wrong")
+
+
+    
 
 def haus_loading():
     button_traumhaus.configure(text="Calculating...")
@@ -214,52 +321,75 @@ def toggle_settings():
 
 
     else:    
-        it_labels.place(relx=0.1, rely=0.2)
-        iter_entry.place(relx=0.37, rely=0.2)
-        it_set_button.place(relx=0.46, rely=0.2)
+        it_labels.place(relx=0.1, rely=0.12)
+        iter_entry.place(relx=0.37, rely=0.12)
+        it_set_button.place(relx=0.46, rely=0.12)
         settings_button.configure(text="Hide Settings")
-        setting_frame.place(relx=0.0, rely=0.78)
-        zz_samples_labels.place(relx=0.13, rely=0.5)
-        zz_samples_entry.place(relx=0.37, rely=0.5)
-        zz_samples_set_button.place(relx=0.46, rely=0.5)
-        hz_samples_labels.place(relx=0.13, rely=0.8)
-        hz_samples_entry.place(relx=0.37, rely=0.8)
-        hz_samples_set_button.place(relx=0.46, rely=0.8)
-        th_samples_labels.place(relx=0.62, rely=0.2)
-        th_samples_entry.place(relx=0.86, rely=0.2)
-        th_samples_set_button.place(relx=0.95, rely=0.2)
+        setting_frame.place(relx=0.0, rely=0.79)
+        zz_samples_labels.place(relx=0.13, rely=0.35)
+        zz_samples_entry.place(relx=0.37, rely=0.35)
+        zz_samples_set_button.place(relx=0.46, rely=0.35)
+        hz_samples_labels.place(relx=0.13, rely=0.58)
+        hz_samples_entry.place(relx=0.37, rely=0.58)
+        hz_samples_set_button.place(relx=0.46, rely=0.58)
+        th_samples_labels.place(relx=0.13, rely=0.81)
+        th_samples_entry.place(relx=0.37, rely=0.81)
+        th_samples_set_button.place(relx=0.46, rely=0.81)
+        hz_proc_labels.place(relx=0.62, rely=0.2)
+        hz_proc_entry.place(relx=0.86, rely=0.2)
+        hz_proc_set_button.place(relx=0.95, rely=0.2)
+        zz_proc_labels.place(relx=0.62, rely=0.45)
+        zz_proc_entry.place(relx=0.86, rely=0.45)
+        zz_proc_set_button.place(relx=0.95, rely=0.45)
+        th_proc_labels.place(relx=0.62, rely=0.7)
+        th_proc_entry.place(relx=0.86, rely=0.7)
+        th_proc_set_button.place(relx=0.95, rely=0.7)
         
 
 
 def it_set():
     iterations = iter_entry.get()
-    lotto.iter_allowed = int(iterations)
+    iter_allowed = int(iterations)
     return int(iterations)
 
 def haus_samples():
     samples = th_samples_entry.get()
-    lotto.Traumhaus.size = int(samples)
+    Traumhaus.size = int(samples)
     return int(samples)
+
+def th_proc():
+    proc = th_proc_entry.get()
+    Traumhaus.min_perc = int(proc)
+    return int(proc)
 
 def hz_samples():
     samples = hz_samples_entry.get()
-    lotto.Hauptzahlen.size = int(samples)
+    Hauptzahlen.size = int(samples)
     return int(samples)
+
+def hz_proc():
+    proc = hz_proc_entry.get()
+    Zusatzzahlen.min_perc = int(proc)
+    return int(proc)
 
 def zz_samples():
     samples = zz_samples_entry.get()
-    lotto.Zusatzzahlen.size = int(samples)
+    Zusatzzahlen.size = int(samples)
     return int(samples)
 
+def zz_proc():
+    proc = zz_proc_entry.get()
+    Zusatzzahlen.min_perc = int(proc)
+    return int(proc)
 
-setting_frame = create_frame(x_pos=0.5, y_pos=0.895, color_pl=primary_color_light, height=110)
+setting_frame = create_frame(x_pos=0.5, y_pos=0.895, color_pl=primary_color_light, height=140)
 setting_frame.place_forget()
 
 #---------------------settings iterations --------------------
 
 it_labels = create_label("Interations:", 0.1, 0.2, master=setting_frame, color_l="#A1DBF1")
 #it_labels.place_forget()
-iter_entry = create_entry(0.37,0.2, master=setting_frame, text=lotto.iter_allowed)
+iter_entry = create_entry(0.37,0.2, master=setting_frame, text=iter_allowed)
 #iter_entry.place_forget()
 it_set_button = create_button(it_set, "Set", 0.46, 0.2, width=22, height=25, corner=5, txt_size=10, master=setting_frame, color_pl="white")
 #it_set_button.place_forget()
@@ -269,7 +399,7 @@ it_set_button = create_button(it_set, "Set", 0.46, 0.2, width=22, height=25, cor
 
 th_samples_labels = create_label("TH Samplesize:", 0.62, 0.2, master=setting_frame, color_l="#A1DBF1")
 #th_samples_labels.place_forget()
-th_samples_entry = create_entry(0.86,0.2, master=setting_frame, text=lotto.Traumhaus.size)
+th_samples_entry = create_entry(0.86,0.2, master=setting_frame, text=Traumhaus.size)
 #th_samples_entry.place_forget()
 th_samples_set_button = create_button(haus_samples, "Set", 0.95, 0.2, width=22, height=25, corner=5, txt_size=10, master=setting_frame, color_pl="white")
 #th_samples_set_button.place_forget()
@@ -279,20 +409,45 @@ th_samples_set_button = create_button(haus_samples, "Set", 0.95, 0.2, width=22, 
 
 hz_samples_labels = create_label("HZ Samplesize:", 0.13, 0.8, master=setting_frame, color_l="#A1DBF1")
 #th_samples_labels.place_forget()
-hz_samples_entry = create_entry(0.37,0.8, master=setting_frame, text=lotto.Hauptzahlen.size)
+hz_samples_entry = create_entry(0.37,0.8, master=setting_frame, text=Hauptzahlen.size)
 #th_samples_entry.place_forget()
 hz_samples_set_button = create_button(hz_samples, "Set", 0.46, 0.8, width=22, height=25, corner=5, txt_size=10, master=setting_frame, color_pl="white")
 #th_samples_set_button.place_forget()
+
+
+hz_proc_labels = create_label("HZ % Min.:", 0.13, 0.5, master=setting_frame, color_l="#A1DBF1")
+
+hz_proc_entry = create_entry(0.37,0.5, master=setting_frame, text=Hauptzahlen.min_perc)
+
+hz_proc_set_button = create_button(hz_proc, "Set", 0.46, 0.5, width=22, height=25, corner=5, txt_size=10, master=setting_frame, color_pl="white")
+
+th_proc_labels = create_label("TH % Min.:", 0.13, 0.5, master=setting_frame, color_l="#A1DBF1")
+
+th_proc_entry = create_entry(0.37,0.5, master=setting_frame, text=Traumhaus.min_perc)
+
+th_proc_set_button = create_button(th_proc, "Set", 0.46, 0.5, width=22, height=25, corner=5, txt_size=10, master=setting_frame, color_pl="white")
+
 
 #---------------------settings samples --------------------
 
 
 zz_samples_labels = create_label("ZZ Samplesize:", 0.13, 0.5, master=setting_frame, color_l="#A1DBF1")
 #th_samples_labels.place_forget()
-zz_samples_entry = create_entry(0.37,0.5, master=setting_frame, text=lotto.Zusatzzahlen.size)
+zz_samples_entry = create_entry(0.37,0.5, master=setting_frame, text=Zusatzzahlen.size)
 #th_samples_entry.place_forget()
 zz_samples_set_button = create_button(zz_samples, "Set", 0.46, 0.5, width=22, height=25, corner=5, txt_size=10, master=setting_frame, color_pl="white")
 #th_samples_set_button.place_forget()
+
+#---------------------settings procent --------------------
+
+
+zz_proc_labels = create_label("ZZ % Min.:", 0.13, 0.5, master=setting_frame, color_l="#A1DBF1")
+
+zz_proc_entry = create_entry(0.37,0.5, master=setting_frame, text=Zusatzzahlen.min_perc)
+
+zz_proc_set_button = create_button(zz_proc, "Set", 0.46, 0.5, width=22, height=25, corner=5, txt_size=10, master=setting_frame, color_pl="white")
+
+
 
 #=============================BUTTONS =============================
 
@@ -312,7 +467,7 @@ label_hz_output = create_label(" ", 0.47, 0.39, anchor=tkinter.E)
 label_zusatz        = create_label("Zusatzzahlen:", 0.53, 0.32, anchor=tkinter.W)
 label_zz_output = create_label(" ", 0.53, 0.39, anchor=tkinter.W)
 
-#______________________Traumhaus_______________________________
+#______________________Traumhaus__________________________________
 label_haus        = create_label("Los Nummer:", 0.5, 0.63)
 label_th_output = create_label(" ", 0.5, 0.7)
 
